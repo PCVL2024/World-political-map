@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Calor das Cidades Mais Populosas</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <script src="./script.js"></script>
+    <script>
+        // Defina o mapa
+var map = L.map('map').setView([20, 0], 2);
+
+// Adicione uma camada de tile do OpenStreetMap
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+}).addTo(map);
+
+// Dados das cidades mais populosas do mundo (latitude, longitude, população)
+var cidades = [
+    [35.6895, 139.6917, 37393128], // Tóquio, Japão
+    [34.0522, -118.2437, 3979576], // Los Angeles, EUA
+    [28.6139, 77.2090, 31870000],  // Delhi, Índia
+    [40.7128, -74.0060, 8419600],  // Nova York, EUA
+    [55.7558, 37.6173, 12506468],  // Moscou, Rússia
+    [19.0760, 72.8777, 12442373],  // Mumbai, Índia
+    [23.1291, 113.2644, 11071424], // Guangzhou, China
+    [41.0082, 28.9784, 15462452],  // Istambul, Turquia
+    [35.6762, 139.6503, 37393128], // Tóquio, Japão
+    [31.2304, 121.4737, 24281400], // Xangai, China
+    [39.9042, 116.4074, 21516000], // Pequim, China
+    [22.3964, 114.1095, 7451000],  // Hong Kong, China
+    [19.4326, -99.1332, 9209944],  // Cidade do México, México
+    [1.3521, 103.8198, 5638700],   // Singapura, Singapura
+];
+
+// Crie o mapa de calor
+var heat = L.heatLayer(cidades.map(function (cidade) {
+    return [cidade[0], cidade[1], cidade[2] / 1000000];
+}), {
+    radius: 25,
+    blur: 15,
+    maxZoom: 17,
+}).addTo(map);
+
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapa de Calor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <style>
+        #map { height: 100vh; width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Inicializando o mapa
+        var map = L.map('map').setView([-23.550520, -46.633308], 13);
+
+        // Adicionando camada de mapa base
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Gerando alguns dados para o mapa de calor
+        var heatData = [];
+        for (var i = 0; i < 500; i++) {
+            var lat = getRandomLat();
+            var lng = getRandomLng();
+            heatData.push([lat, lng]);
+        }
+
+        // Adicionando o mapa de calor ao mapa
+        L.heatLayer(heatData).addTo(map);
+
+        // Função para obter latitude aleatória
+        function getRandomLat() {
+            return -23.550520 + Math.random() * 0.01;
+        }
+
+        // Função para obter longitude aleatória
+        function getRandomLng() {
+            return -46.633308 + Math.random() * 0.01;
+        }
+    </script>
+</body>
+</html>

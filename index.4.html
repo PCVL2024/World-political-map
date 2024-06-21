@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapa Personalizado</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"/>
+    <style>
+        #map { height: 100vh; width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+    <script>
+        // Inicializando o mapa
+        var map = L.map('map').setView([-23.550520, -46.633308], 13);
+
+        // Adicionando camada de mapa base
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Criando um cluster de marcadores
+        var markers = L.markerClusterGroup();
+
+        // Adicionando marcadores ao cluster
+        for (var i = 0; i < 100; i++) {
+            var marker = L.marker([getRandomLat(), getRandomLng()], {
+                icon: L.icon({
+                    iconUrl: 'https://example.com/path/to/icon.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                })
+            });
+            marker.bindPopup("<b>Nome do Local</b><br>Descrição do Local<br>Latitude: " + marker.getLatLng().lat + "<br>Longitude: " + marker.getLatLng().lng);
+            markers.addLayer(marker);
+        }
+
+        // Adicionando o cluster ao mapa
+        map.addLayer(markers);
+
+        // Função para obter latitude aleatória
+        function getRandomLat() {
+            return -23.550520 + Math.random() * 0.01;
+        }
+
+        // Função para obter longitude aleatória
+        function getRandomLng() {
+            return -46.633308 + Math.random() * 0.01;
+        }
+
+        // Adicionando filtro de marcadores
+        var overlayMaps = {
+            "Marcadores": markers
+        };
+
+        L.control.layers(null, overlayMaps).addTo(map);
+
+        // Adicionando funcionalidade de desenho
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        var drawControl = new L.Control.Draw({
+            draw: {
+                polygon: true,
+                polyline: true,
+                rectangle: true,
+                circle: true,
+                marker: true
+            },
+            edit: {
+                featureGroup: drawnItems
+            }
+        });
+        map.addControl(drawControl);
+
+        map.on('draw:created', function (e) {
+            var type = e.layerType,
+                layer = e.layer;
+
+            if (type === 'marker') {
+                layer.bindPopup('A popup!');
+            }
+
+            drawnItems.addLayer(layer);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa Mundi Interativo</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 600px; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    var mymap = L.map('map').setView([0, 0], 2);
+
+    // Camada base
+    var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(mymap);
+
+    // Camada GeoJSON para os países
+    var countriesLayer = L.geoJSON(null, {
+      style: style,
+      onEachFeature: onEachFeature
+    }).addTo(mymap);
+
+    // Função para estilizar os países
+    function style(feature) {
+      return {
+        fillColor: '#B7F4DD', // Cor de preenchimento padrão
+        weight: 2, // Largura do contorno
+        opacity: 1,
+        color: 'white', // Cor do contorno
+        fillOpacity: 0.7
+      };
+    }
+
+    // Função para destacar o país ao passar o mouse
+    function highlightFeature(e) {
+      var layer = e.target;
+
+      layer.setStyle({
+        weight: 4, // Largura do contorno destacada
+        color: '#666', // Cor do contorno destacada
+        dashArray: '',
+        fillOpacity: 0.7,
+        fillColor: '#FFA07A' // Cor de preenchimento destacada
+      });
+
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+      }
+    }
+
+    // Função para resetar o destaque do país
+    function resetHighlight(e) {
+      countriesLayer.resetStyle(e.target);
+    }
+
+    // Função para adicionar popups e interatividade a cada país
+    function onEachFeature(feature, layer) {
+      if (feature.properties && feature.properties.name) {
+        var countryName = feature.properties.name;
+        var wikiLink = "https://en.wikipedia.org/wiki/" + countryName.replace(/ /g, "_");
+
+        var popupContent = "<b>" + countryName + "</b><br>";
+        popupContent += "Clique <a href='" + wikiLink + "' target='_blank'>aqui</a> para obter mais informações na Wikipédia.";
+
+        layer.bindPopup(popupContent);
+
+        layer.on({
+          mouseover: highlightFeature,
+          mouseout: resetHighlight
+        });
+      }
+    }
+
+    // Carregar dados GeoJSON e adicionar à camada de países
+    fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+      .then(response => response.json())
+      .then(data => {
+        countriesLayer.addData(data);
+      });
+
+    // Camadas adicionais para cidades e rios (exemplo)
+    var citiesLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    var riversLayer = L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    // Mapas de sobreposição
+    var overlayMaps = {
+      "Países": countriesLayer,
+      "Cidades": citiesLayer,
+      "Rios": riversLayer
+    };
+
+    // Adicionar controle de camadas ao mapa
+    L.control.layers(null, overlayMaps).addTo(mymap);
+
+  </script>
+</body>
+</html>
+
+
+
+

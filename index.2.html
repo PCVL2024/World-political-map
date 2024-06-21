@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Mundi</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <style>
+        body, html {
+    height: 100%;
+    margin: 0;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+    </style>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+    <script>
+      // Inicializa o mapa e define o ponto inicial e o nível de zoom
+var map = L.map('map').setView([20, 0], 2);
+
+// Adiciona um tile layer ao mapa (utilizando OpenStreetMap)
+var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// URL do GeoJSON
+var geojsonUrl = 'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json';
+
+// Camada de fronteiras políticas
+var bordersLayer = L.geoJSON(null, {
+    style: {
+        color: '#ff7800',
+        weight: 2
+    }
+}).addTo(map);
+
+// Carrega o GeoJSON e adiciona ao mapa
+fetch(geojsonUrl)
+    .then(response => response.json())
+    .then(data => {
+        bordersLayer.addData(data);
+    })
+    .catch(error => console.error('Erro ao carregar o GeoJSON:', error));
+
+// Dados GeoJSON para cidades (exemplo expandido)
+var citiesGeoJSON = {
+    "type": "FeatureCollection",
+    "features": [
+        { "type": "Feature", "properties": { "name": "São Paulo" }, "geometry": { "type": "Point", "coordinates": [-46.6333, -23.5505] } },
+        { "type": "Feature", "properties": { "name": "New York" }, "geometry": { "type": "Point", "coordinates": [-74.006, 40.7128] } },
+        { "type": "Feature", "properties": { "name": "London" }, "geometry": { "type": "Point", "coordinates": [-0.1276, 51.5074] } },
+        { "type": "Feature", "properties": { "name": "Tokyo" }, "geometry": { "type": "Point", "coordinates": [139.6917, 35.6895] } },
+        { "type": "Feature", "properties": { "name": "Sydney" }, "geometry": { "type": "Point", "coordinates": [151.2093, -33.8688] } },
+        { "type": "Feature", "properties": { "name": "Paris" }, "geometry": { "type": "Point", "coordinates": [2.3522, 48.8566] } },
+        { "type": "Feature", "properties": { "name": "Moscow" }, "geometry": { "type": "Point", "coordinates": [37.6173, 55.7558] } },
+        { "type": "Feature", "properties": { "name": "Beijing" }, "geometry": { "type": "Point", "coordinates": [116.4074, 39.9042] } },
+        { "type": "Feature", "properties": { "name": "Mumbai" }, "geometry": { "type": "Point", "coordinates": [72.8777, 19.0760] } },
+        { "type": "Feature", "properties": { "name": "Cairo" }, "geometry": { "type": "Point", "coordinates": [31.2357, 30.0444] } },
+        { "type": "Feature", "properties": { "name": "Berlin" }, "geometry": { "type": "Point", "coordinates": [13.4050, 52.5200] } },
+        { "type": "Feature", "properties": { "name": "Buenos Aires" }, "geometry": { "type": "Point", "coordinates": [-58.3816, -34.6037] } },
+        { "type": "Feature", "properties": { "name": "Johannesburg" }, "geometry": { "type": "Point", "coordinates": [28.0473, -26.2041] } },
+        { "type": "Feature", "properties": { "name": "Lagos" }, "geometry": { "type": "Point", "coordinates": [3.3792, 6.5244] } },
+        { "type": "Feature", "properties": { "name": "Toronto" }, "geometry": { "type": "Point", "coordinates": [-79.3832, 43.6532] } },
+        { "type": "Feature", "properties": { "name": "Dubai" }, "geometry": { "type": "Point", "coordinates": [55.2708, 25.2048] } },
+        { "type": "Feature", "properties": { "name": "Singapore" }, "geometry": { "type": "Point", "coordinates": [103.8198, 1.3521] } },
+        { "type": "Feature", "properties": { "name": "Hong Kong" }, "geometry": { "type": "Point", "coordinates": [114.1694, 22.3193] } }
+    ]
+};
+
+// Camada de cidades
+var citiesLayer = L.geoJSON(citiesGeoJSON, {
+    pointToLayer: function (feature, latlng) {
+        return L.marker(latlng).bindPopup(feature.properties.name);
+    }
+});
+
+// Dados GeoJSON para os 10 maiores rios do mundo (exemplo)
+var riversGeoJSON = {
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": { "name": "Amazon River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [-70.0, -3.4653],
+                    [-52.5, -3.4653]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Nile River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [31.233334, 30.033333],
+                    [31.233334, -1.283333]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Yangtze River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [91.1, 30.7],
+                    [121.5, 31.2]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Mississippi River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [-91.0, 29.0],
+                    [-91.0, 47.0]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Yenisei River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [86.0, 52.0],
+                    [86.0, 68.0]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Yellow River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [113.0, 34.0],
+                    [119.0, 37.0]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Ob River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [70.0, 53.0],
+                    [70.0, 66.0]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Parana River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [-60.0, -20.0],
+                    [-60.0, -34.0]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Congo River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [15.0, -5.0],
+                    [15.0, 0.0]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Amur River" },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [120.0, 50.0],
+                    [130.0, 45.0]
+                ]
+            }
+        }
+    ]
+};
+
+// Camada de rios
+var riversLayer = L.geoJSON(riversGeoJSON, {
+    style: function (feature) {
+        return { color: 'blue', weight: 2 };
+    },
+    onEachFeature: function (feature, layer) {
+        if (feature.properties && feature.properties.name) {
+            layer.bindPopup(feature.properties.name);
+        }
+    }
+});
+
+// Controle de camadas
+var overlayMaps = {
+    "Fronteiras Políticas": bordersLayer,
+    "Cidades": citiesLayer,
+    "Rios": riversLayer
+};
+
+L.control.layers(null, overlayMaps).addTo(map);
+
+    </script>
+</body>
+</html>

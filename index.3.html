@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Mundi Interativo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+        }
+        .legend {
+            background: white;
+            line-height: 1.5;
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            z-index: 1000;
+        }
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="legend" id="legend"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Inicializa o mapa
+var map = L.map('map').setView([0, 0], 2);
+
+// Adiciona a camada base (OpenStreetMap)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Função para definir a cor baseada na região (ou qualquer outro critério)
+function getColor(region) {
+    return {
+        'Africa': '#ffcc00',
+        'Asia': '#ff6600',
+        'Europe': '#0066ff',
+        'North America': '#00cc00',
+        'South America': '#cc0000',
+        'Oceania': '#9900cc'
+    }[region] || '#cccccc'; // cor padrão para regiões não definidas
+}
+
+// Função para definir o estilo de cada feição
+function style(feature) {
+    return {
+        fillColor: getColor(feature.properties.region), // Supondo que os dados GeoJSON tenham uma propriedade 'region'
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+    };
+}
+
+// Adiciona a camada GeoJSON com o estilo
+fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+    .then(response => response.json())
+    .then(data => {
+        // Adiciona a propriedade 'region' aos países
+        data.features.forEach(feature => {
+            feature.properties.region = getRegion(feature.properties.name);
+        });
+        L.geoJSON(data, { style: style }).addTo(map);
+    })
+    .catch(error => console.error('Erro ao carregar o GeoJSON:', error));
+
+// Função para determinar a região de um país (simplificada para o exemplo)
+function getRegion(country) {
+    const regions = {
+        'Africa': ['Algeria', 'Nigeria', 'South Africa'], // Adicione mais países conforme necessário
+        'Asia': ['China', 'India', 'Japan'],
+        'Europe': ['France', 'Germany', 'United Kingdom'],
+        'North America': ['United States', 'Canada', 'Mexico'],
+        'South America': ['Brazil', 'Argentina', 'Chile'],
+        'Oceania': ['Australia', 'New Zealand', 'Fiji']
+    };
+
+    for (const [region, countries] of Object.entries(regions)) {
+        if (countries.includes(country)) {
+            return region;
+        }
+    }
+    return 'Other'; // Região padrão se o país não for encontrado
+}
+
+// Adiciona a legenda ao mapa
+var legend = L.control({ position: 'bottomleft' });
+
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'legend');
+    div.innerHTML = `
+        <h4>Regiões</h4>
+        <i style="background: #ffcc00"></i> África<br>
+        <i style="background: #ff6600"></i> Ásia<br>
+        <i style="background: #0066ff"></i> Europa<br>
+        <i style="background: #00cc00"></i> América do Norte<br>
+        <i style="background: #cc0000"></i> América do Sul<br>
+        <i style="background: #9900cc"></i> Oceania<br>
+        <i style="background: #cccccc"></i> Outras<br>
+    `;
+    return div;
+};
+
+legend.addTo(map);
+
+    </script>
+</body>
+</html>
+

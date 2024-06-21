@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapa de Calor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <style>
+        #map { height: 100vh; width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Inicializando o mapa
+        var map = L.map('map').setView([-23.550520, -46.633308], 13);
+
+        // Adicionando camada de mapa base
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Dados de população para cada distrito
+        var populationData = [
+            // Substitua 'lat', 'lng' e 'população' pelos valores reais para cada distrito
+            // A 'população' deve ser um número que representa a população do distrito
+            // Você pode precisar ajustar este número para obter a aparência desejada para o mapa de calor
+            {'lat': lat1, 'lng': lng1, 'population': população1},
+            {'lat': lat2, 'lng': lng2, 'population': população2},
+            // Adicione mais distritos conforme necessário
+        ];
+
+        // Gerando dados para o mapa de calor
+        var heatData = [];
+        for (var i = 0; i < populationData.length; i++) {
+            var lat = populationData[i].lat;
+            var lng = populationData[i].lng;
+            var population = populationData[i].population;
+            // Adicionando a localização ao mapa de calor várias vezes para simular a população
+            for (var j = 0; j < population; j++) {
+                heatData.push([lat, lng]);
+            }
+        }
+
+        // Adicionando o mapa de calor ao mapa
+        L.heatLayer(heatData).addTo(map);
+    </script>
+</body>
+</html>

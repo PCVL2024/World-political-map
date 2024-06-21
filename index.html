@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Político das Cidades do Mundo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 90vh; /* Ajusta a altura do mapa */
+        }
+        #controls {
+            height: 10vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <select id="filterType">
+            <option value="all">Mostrar Tudo</option>
+            <option value="continent">Continente</option>
+            <option value="country">País</option>
+        </select>
+        <select id="filterValue">
+            <!-- Options will be populated dynamically -->
+        </select>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <script>
+        // Lista de capitais do mundo
+        const worldCapitals = new Set([
+            'Kabul', 'Tirana', 'Algiers', 'Andorra la Vella', 'Luanda', 'Saint John\'s', 'Buenos Aires',
+            // Lista de capitais omitida por brevidade...
+            'Caracas', 'Hanoi', 'Sanaa', 'Lusaka', 'Harare'
+        ]);
+
+        // Inicializar o mapa
+        var map = L.map('map').setView([20, 0], 2); // Posição inicial do mapa
+
+        // Adicionar uma camada de mapa (usando OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Função para definir o estilo dos marcadores
+        function markerOptions(feature) {
+            var color = worldCapitals.has(feature.properties.city) ? 'green' : 'yellow';
+            return {
+                radius: 5,
+                fillColor: color,
+                color: color,
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            };
+        }
+
+        // Função para quando cada recurso for adicionado
+        function onEachFeature(feature, layer) {
+            if (feature.properties && feature.properties.city) {
+                layer.bindPopup("Cidade: " + feature.properties.city + "<br>País: " + feature.properties.country);
+            }
+        }
+
+        // Função para converter CSV em GeoJSON
+        function csvToGeoJSON(csvData) {
+            var geojson = {
+                type: "FeatureCollection",
+                features: []
+            };
+
+            csvData.forEach(row => {
+                var feature = {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [parseFloat(row.lng), parseFloat(row.lat)]
+                    },
+                    properties: {
+                        city: row.city,
+                        country: row.country,
+                        continent: row.continent || "Unknown" // Define Unknown se continent for indefinido
+                    }
+                };
+                geojson.features.push(feature);
+            });
+
+            return geojson;
+        }
+
+        // Variável para armazenar o geojson
+        let geojson;
+
+        // Função para filtrar cidades
+        function filterCities() {
+            var filterType = document.getElementById('filterType').value;
+            var filterValue = document.getElementById('filterValue').value;
+
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.CircleMarker) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            L.geoJSON(geojson, {
+                filter: function (feature) {
+                    if (filterType === 'all') {
+                        return true;
+                    } else if (filterType === 'country') {
+                        return feature.properties.country === filterValue;
+                    } else if (filterType === 'continent') {
+                        return feature.properties.continent === filterValue;
+                    }
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, markerOptions(feature));
+                },
+                onEachFeature: onEachFeature
+            }).addTo(map);
+        }
+
+        // Função para preencher dinamicamente o segundo dropdown com base na opção selecionada no primeiro dropdown
+        function updateFilterValues() {
+            var filterType = document.getElementById('filterType').value;
+            var filterValueDropdown = document.getElementById('filterValue');
+            filterValueDropdown.innerHTML = ''; // Limpar as opções atuais
+
+            if (filterType === 'continent') {
+                // Adicionar os continentes manualmente
+                var continents = ["África", "América", "Ásia", "Europa", "Oceânia"];
+                continents.forEach(continent => {
+                    var option = document.createElement('option');
+                    option.text = continent;
+                    option.value = continent;
+                    filterValueDropdown.appendChild(option);
+                });
+            } else if (filterType === 'country') {
+                // Preencher o segundo dropdown com os países disponíveis
+                var countries = [...new Set(geojson.features.map(feature => feature.properties.country))];
+                countries.forEach(country => {
+                    var option = document.createElement('option');
+                    option.text = country;
+                    option.value = country;
+                    filterValueDropdown.appendChild(option);
+                });
+            }
+        }
+
+        // Adicionar event listeners para detectar mudanças nos dropdowns e também quando o usuário digita manualmente
+        document.getElementById('filterType').addEventListener('change', function() {
+            updateFilterValues(); // Chamar a função para atualizar as opções do segundo dropdown
+        });
+
+        document.getElementById('filterType').addEventListener('input', function() {
+            updateFilterValues(); // Chamar a função para atualizar as opções do segundo dropdown
+        });
+
+        // Chamar a função inicialmente para preencher as opções do segundo dropdown com base na opção padrão do primeiro dropdown
+        updateFilterValues();
+
+        // Carregar e parsear o CSV
+        fetch('https://gist.githubusercontent.com/curran/13d30e855d48cdd6f22acdf0afe27286/raw/0635f14817ec634833bb904a47594cc2f5f9dbf8/worldcities_clean.csv')
+            .then(response => response.text())
+            .then(csvText => {
+                var parsedData = Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true
+                });                geojson = csvToGeoJSON(parsedData.data);
+
+L.geoJSON(geojson, {
+    pointToLayer: function (feature, latlng) {
+        return L.circleMarker(latlng, markerOptions(feature));
+    },
+    onEachFeature: onEachFeature
+}).addTo(map);
+});
+</script>
+</body>
+</html>
+
+
+
+                   
+
+
+
+
+                   
+
+
+
+
+
+
+
+
+
+
+
+
